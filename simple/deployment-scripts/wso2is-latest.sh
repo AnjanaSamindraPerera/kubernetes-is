@@ -416,7 +416,7 @@ data:
 
     [database.identity_db]
     type = "mysql"
-    url = "jdbc:mysql://wso2is-rdbms-service-mysql:3306/WSO2IS_IDENTITY_DB?allowPublicKeyRetrieval=true&amp;autoReconnect=true&amp;useSSL=false"
+    url = "jdbc:mysql://wso2is-rdbms-service-mysql:3306/WSO2IS_IDENTITY_DB?autoReconnect=true&amp;useSSL=false"
     username = "wso2carbon"
     password = "wso2carbon"
     driver = "com.mysql.cj.jdbc.Driver"
@@ -426,7 +426,7 @@ data:
 
     [database.shared_db]
     type = "mysql"
-    url = "jdbc:mysql://wso2is-rdbms-service-mysql:3306/WSO2IS_SHARED_DB?allowPublicKeyRetrieval=true&amp;autoReconnect=true&amp;useSSL=false"
+    url = "jdbc:mysql://wso2is-rdbms-service-mysql:3306/WSO2IS_SHARED_DB?autoReconnect=true&amp;useSSL=false"
     username = "wso2carbon"
     password = "wso2carbon"
     driver = "com.mysql.cj.jdbc.Driver"
@@ -444,15 +444,11 @@ data:
       DROP DATABASE IF EXISTS WSO2IS_SHARED_DB;
       DROP DATABASE IF EXISTS WSO2IS_IDENTITY_DB;
 
-      CREATE DATABASE WSO2IS_SHARED_DB character set latin1;
-      CREATE DATABASE WSO2IS_IDENTITY_DB character set latin1;
+      CREATE DATABASE WSO2IS_SHARED_DB;
+      CREATE DATABASE WSO2IS_IDENTITY_DB;
 
-      DROP USER 'wso2carbon'@'%';
-      FLUSH PRIVILEGES;
-      CREATE USER 'wso2carbon'@'%' IDENTIFIED BY 'wso2carbon';
-
-      GRANT ALL ON WSO2IS_SHARED_DB.* TO 'wso2carbon'@'%';
-      GRANT ALL ON WSO2IS_IDENTITY_DB.* TO 'wso2carbon'@'%';
+      GRANT ALL ON WSO2IS_SHARED_DB.* TO 'wso2carbon'@'%' IDENTIFIED BY 'wso2carbon';
+      GRANT ALL ON WSO2IS_IDENTITY_DB.* TO 'wso2carbon'@'%' IDENTIFIED BY 'wso2carbon';
 
       USE WSO2IS_SHARED_DB;
 
@@ -2408,7 +2404,7 @@ spec:
     spec:
       containers:
         - name: wso2is-mysql
-          image: mysql/mysql-server:latest-aarch64
+          image: mysql:5.7
           livenessProbe:
             exec:
               command:
@@ -2518,14 +2514,14 @@ spec:
           - "-c"
           - |
             set -e
-            connector_version=8.0.29
+            connector_version=8.0.17
             wget https://repo1.maven.org/maven2/mysql/mysql-connector-java/${connector_version}/mysql-connector-java-${connector_version}.jar -P /mysql-connector-jar/
         volumeMounts:
           - name: mysql-connector-jar
             mountPath: /mysql-connector-jar
       containers:
       - name: wso2is
-        image: "wso2is:6.0.0"
+        image: "$image.pull.@.wso2"/wso2is:"$image.tag.wso2is"
         livenessProbe:
           exec:
             command:
@@ -2542,7 +2538,7 @@ spec:
               - nc -z localhost 9443
           initialDelaySeconds: 250
           periodSeconds: 10
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         resources:
           requests:
             memory: "2Gi"
@@ -2612,7 +2608,7 @@ function viewLicenseText(){
 
   echo "PLEASE READ THE BELOW \"WSO2 SOFTWARE LICENSE AGREEMENT\" CAREFULLY BEFORE COMPLETING THE INSTALLATION PROCESS AND USING THE SOFTWARE."
 
-  sleep 2
+  sleep 2s
 
   less ${license_text}
 
